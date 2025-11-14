@@ -36,12 +36,12 @@ This guide provides all the commands needed to fully deploy, test, and clean up 
 
 ## Retrieve the url generated from `minikube service backend-service` and test backend api in postman:
 ### Check to see if API is running:
-GET <url>/
+GET {minikube-service-url}/
 ### Get all todo items:
-GET <url>/api/todos 
+GET {minikube-service-url}/api/todos 
 ### Add a todo item:
-POST <url>/api/todos
-Body of post request: `{ "title": "Go to the Gym", "text": ""}`
+POST {minikube-service-url}/api/todos
+* Body of post request: `{ "title": "Go to the Gym", "text": ""}`
 
 
 ## Delete everything:
