@@ -1,0 +1,30 @@
+# This file provides an initialization SQL script to PostgreSQL using a Kubernetes ConfigMap.
+# - When this ConfigMap is mounted at /docker-entrypoint-initdb.d inside the
+#   official postgres container, Postgres will automatically execute the script
+#   ON FIRST BOOT of a fresh data directory (i.e., when the volume is empty).
+
+# If the same persistent volume is reused, this script WILL NOT re-run (by
+#  design). Delete the PVC/PV before redeploy to force a re-run
+
+# Specifies the Kubernetes API version for core objects like ConfigMap
+apiVersion: v1
+
+# Declares that we are creating a ConfigMap resource
+kind: ConfigMap
+
+# Metadata contains identifying information for this object
+metadata:
+  # The name of the ConfigMap (will be referenced by the volume in the Postgres Deployment)
+  name: postgres-init-sql
+
+# The actual key/value content stored in the ConfigMap
+data:
+  # The key becomes a filename when mounted; Postgres runs *.sql files it finds
+  # under /docker-entrypoint-initdb.d on first container start with an empty data dir
+  # Creates the todos table if it doesn't already exist
+  init.sql: |
+    CREATE TABLE IF NOT EXISTS todos (
+      id SERIAL PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
+      text TEXT
+    );

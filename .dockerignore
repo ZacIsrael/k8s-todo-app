@@ -1,0 +1,11 @@
+# keep secrets out of build context
+*.env
+.env
+kubernetes/*.env
+kubernetes/*secret*.yaml
+kubernetes/secrets/**
+
+node_modules
+npm-debug.log
+.git
+.gitignore

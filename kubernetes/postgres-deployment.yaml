@@ -1,0 +1,119 @@
+#Specifies the API version for this Kubernetes object
+# here, a Deployment that runs the Postgres database
+apiVersion: apps/v1
+
+# Defines the type of resource being created — this is a Deployment
+kind: Deployment
+
+# Metadata provides identifying information about this Deployment
+metadata:
+  # Name of the Deployment
+  name: postgres-deployment
+
+# The specification (configuration) for the Deployment
+spec:
+  # Defines how many Pod replicas should be maintained
+  replicas: 1
+
+  # Selector defines which Pods belong to this Deployment
+  selector:
+    matchLabels:
+      # Must match the labels defined inside the Pod template below
+      app: postgres
+
+  # Template describes the Pods managed by this Deployment
+  template:
+    # Metadata for Pods created by this Deployment
+    metadata:
+      # Apply this label so the Service can find the Pods
+      # Labels applied to Pods (must match selector above)
+      labels:
+        app: postgres
+
+    # Pod configuration
+    spec:
+      # List of containers inside this Pod
+      containers:
+        # The single Postgres container
+        - name: postgres
+
+          # Official lightweight Postgres image
+          image: postgres:16-alpine
+
+          # Mount the SQL bootstrap file so Postgres can auto-run it on first boot
+          volumeMounts:
+            # This mount references the "init-sql" volume defined below
+            - name: init-sql
+              # Special directory scanned by the official Postgres image at startup.
+              # Any *.sql files here are executed the FIRST time the data directory is empty.
+              mountPath: /docker-entrypoint-initdb.d
+
+            # Mount point for persistent database data (PVC-backed)
+            # Ensures data survives Pod restarts / rescheduling
+            - name: pgdata
+              # Default PGDATA used by the official image
+              mountPath: /var/lib/postgresql/data
+
+          # Port Postgres listens on inside the container
+          ports:
+            - containerPort: 5432
+
+          # Environment variables required by the Postgres image
+          # The postgres-secret which points to the values in postgres.env
+          # must be deployed BEFORE this file!
+          env:
+            # Database name
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_DB
+
+            # Username for the database
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+
+            # Password for the database
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+
+          # Liveness probe ensures Pod restarts if DB stops responding
+          livenessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 20
+            periodSeconds: 10
+
+          # Readiness probe ensures traffic is sent only when DB is ready
+          readinessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 5
+            periodSeconds: 5
+
+      # Define the volumes available to containers in this Pod
+      volumes:
+        # Volume that projects our initialization SQL from a ConfigMap
+        - name: init-sql
+          # Source type is a ConfigMap; keys become files when mounted
+          configMap:
+            # The ConfigMap that holds init.sql (created in postgres-init-config.yaml)
+            name: postgres-init-sql
+            # Restrict which keys are projected and their target filenames
+            items:
+              # Map the "init.sql" key to a file named "init.sql" in the mount
+              - key: init.sql
+                path: init.sql
+
+        # PVC-backed persistent storage for Postgres data
+        # Binds this Pod to the PersistentVolumeClaim created in pg-pvc.yaml
+        - name: pgdata
+          persistentVolumeClaim:
+            # Must match metadata.name in pg-pvc.yaml
+            claimName: pgdata

@@ -1,0 +1,101 @@
+# Defines a Deployment to manage backend Pods
+apiVersion: apps/v1
+
+# Defines the type of resource being created — this is a Deployment
+kind: Deployment
+
+# Metadata provides identifying information about the Deployment
+metadata:
+  # Name of the Deployment
+  name: backend-deployment
+
+# The specification (configuration) for the Deployment
+spec:
+  # Defines how many Pod replicas should be maintained
+  replicas: 1
+
+  # Selector defines which Pods belong to this Deployment
+  selector:
+    matchLabels:
+    # Must match the labels defined inside the Pod template below
+      app: backend
+
+  # Template for Pods created/managed by this Deployment
+  template:
+    # Pod metadata
+    metadata:
+      # Labels applied to Pods (must match selector above)
+      labels:
+        app: backend
+
+    # Pod specification (container setup)
+    spec:
+      # Defines the container(s) that will run inside each Pod
+      containers:
+        # Define the backend container
+        # Name of the container
+        - name: backend
+
+          # Pull latest version of image from Docker Hub
+          image: zac390/todo-item-backend:latest
+
+          # Port the app listens on (inside the container)
+          ports:
+            - containerPort: 5000
+
+          # Environment variables the app needs
+          # The postgres-secret which points to the values in postgres.env
+          # must be deployed BEFORE this file else!
+          env:
+            # The port number used by the app
+            - name: PORT
+              value: "5000"
+
+            # Hostname of the Postgres Service (internal DNS)
+            - name: PGHOST
+              value: "postgres-service"
+
+            # Port used by Postgres database
+            - name: PGPORT
+              value: "5432"
+
+            # Database password (for demo purposes only)
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+
+            # Database username
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_USER
+
+            # Database name
+            - name: PGDATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_DB
+
+          # Health check to restart Pod if app becomes unresponsive
+          livenessProbe:
+            httpGet:
+              # Path check inside app (route is in backend/src/index.ts)
+              path: /health
+              # Port to check on
+              port: 5000
+            # Wait time before first check (seconds)
+            initialDelaySeconds: 15
+            # Interval between checks (seconds)
+            periodSeconds: 10
+
+          # Health check to determine readiness for traffic
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 5

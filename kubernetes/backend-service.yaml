@@ -1,0 +1,34 @@
+# Specifies the API version for the Kubernetes object
+# here, it's a Service that exposes the backend app
+apiVersion: v1
+
+# Defines the type of resource being created — this is a Service
+kind: Service
+
+# Metadata provides identifying information about the Service
+metadata:
+  # The name of this Service; used for DNS discovery 
+  # and internal communication (when other Pods connect)
+  name: backend-service
+
+# The specification (configuration) for the Service
+spec:
+  # The selector defines which Pods this Service should route traffic to
+  # It matches Pods that have the label "app: backend"
+  selector:
+    app: backend
+
+  # Specifies how this Service is exposed — LoadBalancer makes it externally accessible
+  # Useful when you want traffic from outside the cluster to reach this Service
+  type: LoadBalancer
+
+  # Define port mappings
+  ports:
+    # A single port mapping between the Service and the Pods
+    # Communication protocol
+    - protocol: TCP
+      # Port exposed inside the cluster
+      port: 5000
+      # Port inside the container to forward traffic to
+      # Port on the Pod's container that receives traffic   
+      targetPort: 5000

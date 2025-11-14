@@ -1,0 +1,23 @@
+# Specifies the API version for this Kubernetes object
+apiVersion: v1
+
+# Declares that this resource is a PersistentVolumeClaim (PVC)
+kind: PersistentVolumeClaim
+
+# Metadata contains identifying information about this PVC
+metadata:
+  # The unique name of this PVC (referenced in the Postgres Deployment)
+  name: pgdata
+
+# The configuration details for this PersistentVolumeClaim
+spec:
+  # Defines how the volume can be mounted —
+  # ReadWriteOnce allows one node to read/write at a time (typical for databases)
+  accessModes: ["ReadWriteOnce"]
+
+  # Requests specific storage resources from the cluster
+  resources:
+    # The desired storage size for the volume
+    requests:
+      # Allocates 5 gigabytes of persistent storage for Postgres data
+      storage: 5Gi

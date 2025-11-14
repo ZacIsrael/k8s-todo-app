@@ -1,0 +1,34 @@
+# Specifies the API version for the Kubernetes object — in this case, 
+# a Service that makes Postgres reachable within the cluster
+apiVersion: v1
+
+# Defines the type of resource being created — here, it's a Service
+kind: Service
+
+# Metadata provides identifying information about the Service
+metadata:
+  # The name of this Service — used for DNS discovery within the cluster
+  name: postgres-service
+
+# The specification (configuration) of this Service
+spec:
+  # Defines how this Service is exposed 
+  # ClusterIP means it's only reachable within the cluster
+  # Internal-only access (default type)
+  type: ClusterIP
+
+  # The selector defines which Pods this Service will send traffic to
+  # It matches Pods that have the label "app: postgres"
+  selector:
+    app: postgres
+
+  # Expose the Postgres port
+  ports:
+    # A single port mapping between Service and Pod
+      # Communication protocol
+    - protocol: TCP
+      # Port exposed by this postgres Service (other Pods connect to this)
+      port: 5432
+      # The port inside the container (on the Pod) 
+      # that receives and handles incoming traffic
+      targetPort: 5432
