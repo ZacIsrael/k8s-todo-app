@@ -13,10 +13,20 @@ metadata:
 
 # The specification (configuration) for the Deployment
 spec:
-  # Defines how many Pod replicas should be maintained
-  # Let's Kubernetes know how many pods of this application 
-  # should be running at all times
-  replicas: 1
+  # Defines how many Pod replicas (n) should be maintained.
+  #
+  # Let's Kubernetes know how many pods (n) of this 
+  # application should be running at all times.
+  #
+  # The more replicas, the higher the availability. If 1 pod 
+  # crashes, (n-1) pods will still serve requests so end users
+  # won't experience any downtime. 
+  #
+  # Having multiple replicas is essential but too many replicas 
+  # increase CPU/memory usage, DB load, logging costs, and can slow rollouts.
+  # Having too many replicas also risks overwhelming downstream services, 
+  # raising cloud costs, and causing autoscaling conflicts.
+  replicas: 3
 
   # Selector defines which Pods belong to this Deployment
   selector:
