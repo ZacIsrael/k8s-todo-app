@@ -2,6 +2,8 @@
 apiVersion: apps/v1
 
 # Defines the type of resource being created — this is a Deployment
+# A Deployment manages ReplicaSets/Pods to keep the app running, healthy,
+# and updates it safely using rolling updates.
 kind: Deployment
 
 # Metadata provides identifying information about the Deployment
@@ -12,6 +14,8 @@ metadata:
 # The specification (configuration) for the Deployment
 spec:
   # Defines how many Pod replicas should be maintained
+  # Let's Kubernetes know how many pods of this application 
+  # should be running at all times
   replicas: 1
 
   # Selector defines which Pods belong to this Deployment
@@ -44,8 +48,8 @@ spec:
             - containerPort: 5000
 
           # Environment variables the app needs
-          # The postgres-secret which points to the values in postgres.env
-          # must be deployed BEFORE this file else!
+          # The postgres-secret which points to the values 
+          # in postgres.env must be deployed BEFORE this file!
           env:
             # The port number used by the app
             - name: PORT
@@ -59,7 +63,7 @@ spec:
             - name: PGPORT
               value: "5432"
 
-            # Database password (for demo purposes only)
+            # Database password 
             - name: PGPASSWORD
               valueFrom:
                 secretKeyRef:
